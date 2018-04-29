@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for QUED42 City Entity
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function job_opening_schema() {
+  $schema = array();
+
+  $schema['job_opening'] = array(
+    'description' => 'Job Opening table for Entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key Apply ID',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'entity_id' => array(
+        'description' => 'Job Opening nid',
+        'type' => 'int',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'job_opening_node_title' => array(
+        'description' => 'Job opening node title',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'applied_by' => array(
+        'description' => 'User uid',
+        'type' => 'int',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'points' => array(
+        'description' => 'Points assign to user',
+        'type' => 'int',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Created timestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'changed' => array(
+        'description' => 'Changed timestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'id' => array('id'),
+    ),
+  );
+  return $schema;
+}

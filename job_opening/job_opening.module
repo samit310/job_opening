@@ -1,0 +1,304 @@
+<?php
+/**
+ * @file
+ * Code for the Job Opening feature.
+ */
+
+include_once 'job_opening.features.inc';
+
+/**
+ * @file
+ * File to create custom entity for job opening and Other stuffs.
+ * @author Samit khulve
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function job_opening_menu() {
+  $items = array();
+
+  $items['jobopening/%jobopening'] = array(
+    'title' => 'Apply for jobs',
+    'page callback' => 'jobopening_view_entity',
+    'page arguments' => array(1),
+    'access arguments' => array('view jobopening entities'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/job_opening_entity.jobopening_view.inc'
+  );
+  $items['admin/structure/jobopening'] = array(
+    'title' => 'Job opening apply Entity',
+    'access arguments' => array('administer jobopening entities'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['jobopening-apply/%ctools_js/%node'] = array(
+    'title' => '',
+    'page callback' => 'jobopening_apply_system',
+    'page arguments' => array(1, 2),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/jobopening-apply-system.job_opening.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function job_opening_permission() {
+  return array(
+    'administer jobopening entities' => array(
+      'title' => t('Administer Job opening apply'),
+      'description' => t('Allows a user to administer jobopening entities'),
+    ),
+    'view jobopening entities' => array(
+      'title' => t('View Job opening Entity'),
+      'description' => t('Allows a user to view the jobopening entities.'),
+    ),
+    'create jobopening entities' => array(
+      'title' => t('Create Job opening apply'),
+      'description' => t('Allows a user to create jobopening entities.'),
+    ),
+    'edit jobopening entities' => array(
+      'title' => t('Edit Job opening apply'),
+      'description' => t('Allows a user to edit jobopening entities.'),
+    ),
+    'delete jobopening entities' => array(
+      'title' => t('Delete Job opening apply'),
+      'description' => t('Allows a user to delete jobopening entities.'),
+    ),
+  );
+}
+
+/**
+ * Implements job_opening_theme().
+ */
+function job_opening_theme($existing, $type, $theme, $path) {
+  return array(
+    'jobopening_entity_view' => array(
+      'variables' => array('element' => null),
+      'template' => 'jobopening-entity-view-template',
+      'path' => drupal_get_path('module', 'job_opening') . '/template',
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function job_opening_entity_info() {
+  $job_opening_entity_info['jobopening'] = array(
+    'label' => t('Apply for Jobs'),
+    'label callback' => 'entity_class_label',
+    'entity class' => 'JobOpeningApply',
+    'controller class' => 'JobOpeningApplyController',
+    'base table' => 'job_opening',
+    'uri callback' => 'entity_class_uri',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+    ),
+    'load hook' => 'jobopening_load',
+    'static cache' => TRUE,
+    'admin ui' => array(
+      'path' => 'admin/content/jobopening',
+      'controller class' => 'JobOpeningApplyUIController',
+      'file' => 'includes/jobopening.admin.inc',
+    ),
+    'module' => 'job_opening',
+    'access callback' => 'jobopening_access_callback',
+    'bundles' => array(
+      'jobopening' => array(
+        'label' => 'Apply for Jobs',
+        'admin' => array(
+          'path' => 'admin/structure/jobopening/manage',
+          'access arguments' => array('administer jobopening entities'),
+        ),
+      ),
+    ),
+    'views controller class' => 'EntityDefaultViewsController',
+  );
+
+  return $job_opening_entity_info;
+}
+
+/**
+ * JobOpening custom entity class.
+ */
+class JobOpeningApply extends Entity {
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'jobopening');
+  }
+
+  protected function defaultLabel() {
+    return isset($this->idKey) ? $this->idKey : '';
+  }
+
+  protected function defaultUri() {
+    return array('path' => 'jobopening/' . $this->identifier());
+  }
+
+}
+
+/**
+ * Custom controller for the JobOpeningApply entity.
+ */
+class JobOpeningApplyController extends EntityAPIController {
+
+  /**
+   * Override the save method.
+   */
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    if (isset($entity->is_new)) {
+      $entity->created = REQUEST_TIME;
+    }
+
+    $entity->changed = REQUEST_TIME;
+    return parent::save($entity, $transaction);
+  }
+
+}
+
+/**
+ * Custom controller for the administrator UI.
+ */
+class JobOpeningApplyUIController extends EntityDefaultUIController {
+
+  /**
+   * Override the menu hook for default ui controller.
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['title'] = t('Job Opening Apply');
+    $items[$this->path]['description'] = t('Manage Job Opening Apply, including fields.');
+    $items[$this->path]['access callback'] = 'jobopening_access_callback';
+    $items[$this->path]['access arguments'] = array('administer jobopening entities');
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    return $items;
+  }
+
+}
+
+/**
+ * Menu autoloader for /jobopening.
+ */
+function jobopening_load($jobopening_id, $reset = FALSE) {
+  $jobopening = jobopening_load_multiple(array($jobopening_id), array(), $reset);
+  return reset($jobopening);
+}
+
+/**
+ * Load multiple jobopening.
+ */
+function jobopening_load_multiple($jobopening_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('jobopening', $jobopening_ids, $conditions, $reset);
+}
+
+/**
+ * Deletes a jobopening.
+ */
+function jobopening_delete(JobOpeningApply $jobopening) {
+  $jobopening->delete();
+}
+
+/**
+ * Delete multiple jobopening.
+ */
+function jobopening_delete_multiple(array $jobopening_ids) {
+  entity_get_controller('jobopening')->delete($jobopening_ids);
+}
+
+/**
+ * Saves a jobopening to the database.
+ */
+function jobopening_save(JobOpeningApply $jobopening) {
+  return $jobopening->save();
+}
+
+/**
+ * jobopening access callback.
+ */
+function jobopening_access_callback() {
+  if (user_access('administer jobopening entities')) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_block_info
+ */
+function job_opening_block_info() {
+  $blocks = array();
+  $blocks['jobopening_apply'] = array(
+    'info' => t('Apply for the Job'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view
+ */
+function job_opening_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'jobopening_apply':
+      if (user_access('view jobopening entities')) {
+        $arg = arg();
+        ctools_include('modal');
+        ctools_include('ajax');
+        ctools_modal_add_js();
+        $block['content'] = ctools_ajax_text_button(t('Apply Now'), "jobopening-apply/nojs/" . $arg[1], t('Apply'));
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_form_alter
+ */
+function job_opening_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'jobopening_form':
+      $arg = arg();
+      if (isset($form_state['node_obj'])) {
+        /**
+         * To remove file upload Ajax warning/notices
+         * https://www.drupal.org/node/1336212
+         */
+        form_load_include($form_state, 'inc', 'job_opening', 'includes/jobopening.admin');
+        
+        // only for ctools pop form.
+        $job_node = $form_state['node_obj'];
+        $form['entity_id']['#access'] = FALSE;
+        $form['entity_id']['#default_value'] = $job_node->nid;
+
+        $form['job_opening_node_title']['#access'] = FALSE;
+        $form['job_opening_node_title']['#default_value'] = $job_node->title;
+
+        $form['applied_by']['#access'] = FALSE;
+        
+        $form['points']['#access'] = FALSE;
+        if(isset($job_node->field_points_assign_to_user[LANGUAGE_NONE][0]['value'])){
+          $form['points']['#default_value'] = $job_node->field_points_assign_to_user[LANGUAGE_NONE][0]['value'];
+        }
+        
+        //Resume file extension validation
+        if (isset($job_node->field_allowed_resume_file_format[LANGUAGE_NONE][0]['value'])) {
+          $extensions = explode(',', $job_node->field_allowed_resume_file_format[LANGUAGE_NONE][0]['value']);
+          $extensions = implode(' ', $extensions);
+          if ($extensions) {
+            $form['field_apply_resume']['und'][0]['#description'] = t('Allowed file types: <strong>%extensions</strong>.', array('%extensions' => $extensions));
+            $form['field_apply_resume']['und'][0]['#upload_validators']['file_validate_extensions'][0] = $extensions;
+          }
+        }
+      }
+      break;
+  }
+}

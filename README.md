@@ -12,7 +12,7 @@ Enable the **Job Opening** Module.
 
 ### Note
 
-Make sure to down load Required module first mainly **features_extra** module.
+Make sure to download Required module first, mainly **features_extra** module.
 
 ```
 drush dl features features_extra
