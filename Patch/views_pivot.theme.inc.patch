@@ -1,0 +1,12 @@
+--- a/views_pivot.theme.inc
++++ b/views_pivot.theme.inc
+@@ -390,7 +390,8 @@
+   }
+ 
+   if (method_exists($field_handler, 'render')) {
+-    return $field_handler->render($aggregate);
++    return $aggregate->$field;
++    //return $field_handler->render($aggregate);
+   }
+ 
+   return $value;

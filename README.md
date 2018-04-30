@@ -30,9 +30,9 @@ On the node view page on **Sidebar First** region you will see the **Apply Now**
 
 ###Job report
 
-Job Report Link : www.example.com**/job-report**
+Job Report Link : **/job-report**
 
-Use **Pivot Tables for Views module** [https://www.drupal.org/project/views_pivot] for Job report page.
+**Pivot Tables for Views module** [https://www.drupal.org/project/views_pivot] is use for Job report page.
 
 ### Note
 ```
