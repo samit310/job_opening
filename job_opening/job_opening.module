@@ -302,3 +302,20 @@ function job_opening_form_alter(&$form, &$form_state, $form_id) {
       break;
   }
 }
+
+/**
+ *  Implements hook_views_data_alter()
+ */
+function job_opening_views_data_alter(&$data) {
+  $data['job_opening']['job_opening'] = array(
+    'title' => t('Relationships with user'),
+    'help' => t('applied_by coloum relationship with User.'),
+    'relationship' => array(
+      'base' => 'users',  // the User table that you join in.
+      'base field' => 'uid',  // the field name of the user table that make the relation.
+      'field' => 'applied_by',  // the applied_by field name of job_opening table related with the core table.
+      'handler' => 'views_handler_relationship',  // default
+      'label' => t('User (applied_by)'),
+    ),
+  );
+}
